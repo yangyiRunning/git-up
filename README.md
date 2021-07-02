@@ -5,7 +5,7 @@
 [3.分支管理](#分支管理)
 [4.标签管理](#标签管理)
 [5.时光穿梭](#时光穿梭)
-[6.高级操作](#高级操作)
+[6.工作流](#工作流)
 
 ## 原理
 
@@ -387,5 +387,130 @@ git checkout tag_name
 
 ## 时光穿梭
 
-## 高级操作
+### 1. 回退到指定commit_id并保留当前工作区的修改
 
+```
+git reset --soft commit_id
+```
+
+### 2. 回退到指定commit_id不保留当前工作区的修改
+
+```
+git reset --hard commit_id
+```
+
+### 3. 回退到指定commit_id并且生成一次新的提交引用
+
+```
+git revert commit_id
+```
+
+## 工作流
+
+### 多人协作一般步骤（推荐），以一次普通的提交为例
+
+#### 1. 将自己当前工作区的改动收起
+
+```
+git stash
+```
+
+#### 2. fetch远程仓库代码同时rebase
+
+```
+git pull --rebase origin branch_name
+```
+
+#### 3. 检查并合并冲突
+
+#### 4. 将自己当前工作区的改动弹出
+
+```
+git stash pop
+```
+
+#### 5. 将当前工作区改动加入至暂存区
+
+```
+git add .
+```
+
+#### 6. 将当前暂存区改动提交至本地仓库
+
+```
+git commit -m "commit message"
+```
+
+#### 7. 将本地仓库的commit_id提交至远端仓库
+
+```
+git push origin branch_name
+```
+
+### 在push之前修改log当中的某条commit message
+
+#### 1. 找到想要被修改的commit_id的上一个commit_id
+
+```
+git rebase -i commit_id
+```
+
+注：此处的commit_id为要修改的commit_id的上一个id，因为修改的区间为 ( commit_id, commit_id ]
+
+#### 2. 在弹窗的界面输入 -i 进去shell编辑模式
+
+![](https://tva1.sinaimg.cn/large/008i3skNly1gs2m2pjahlj307y0ezgmo.jpg)
+
+#### 3. 将想要修改的某一个commit_id前的pick改为edit
+
+![](https://tva1.sinaimg.cn/large/008i3skNly1gs2mnbdryfj608i0fsq4602.jpg)
+
+#### 4. 输入 :wq 保存并退出，此时进入rebase状态
+
+![](https://tva1.sinaimg.cn/large/008i3skNly1gs2m419zl6j60kl072aas02.jpg)
+
+#### 5. 将修改添加并提交
+
+```
+git add .
+```
+
+```
+git commit --amend
+```
+
+#### 6. 正式修改曾经提交过的commit message
+
+![](https://tva1.sinaimg.cn/large/008i3skNly1gs2m5b2hz3j308j0ekmy6.jpg)
+
+#### 7. 完成commit message的修改
+
+```
+git rebase --continue
+```
+
+#### 8. 本地仓库完成log的修改，推送至远端仓库
+
+```
+git push origin branch_name
+```
+
+注:
+
+1. 如果在上述任何一个环节想放弃rebase，则
+
+```
+git rebase --abort
+```
+
+2. 如果在上述任何一个环节想忽略本次rebase，则
+
+```
+git rebase --skip
+```
+
+3. 以上rebase操作的前提是**push之前**，也就是说rebase修改的是本地仓库的log，如果rebase的commit_id之前就已经push到远端仓库了，则此时无法直接push到远端仓库，除非强制push。**强制推送**为危险操作。有些平台并不允许。
+
+```
+git push origin -f branch_name
+```
